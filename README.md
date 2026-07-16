@@ -51,6 +51,10 @@ On first start, the pinned ONNX assets are downloaded twice and their SHA-256 di
 
 openWakeWord code is Apache-2.0. Its included pre-trained Alexa and Hey Jarvis models are **CC BY-NC-SA 4.0**, so attribution, ShareAlike and non-commercial-use restrictions apply. See [`models/THIRD-PARTY-NOTICES.md`](models/THIRD-PARTY-NOTICES.md).
 
+## Kinect SDK detection
+
+The .NET 8 host loads `Microsoft.Kinect.dll` from the executable directory, `KINECTSDK10_DIR`, the standard SDK v1.8 installation folders, or the .NET Framework GAC. If **Start** still fails, copy the complete diagnostic message from the status area; it lists every searched path and the process architecture. The published application must remain win-x86.
+
 ## Development
 
 ```powershell
