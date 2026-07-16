@@ -5,6 +5,12 @@
     <UseWindowsForms>true</UseWindowsForms>
     <PlatformTarget>x86</PlatformTarget>
     <RuntimeIdentifier>win-x86</RuntimeIdentifier>
+    <Version>0.1.0</Version>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <Product>OpenClaw Kinect Satellite</Product>
+    <Authors>OpenClaw</Authors>
+    <Description>Windows Kinect v1 voice satellite for Home Assistant Assist.</Description>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\OpenClaw.KinectSatellite.Core\OpenClaw.KinectSatellite.Core.csproj" />

@@ -25,6 +25,12 @@ A user-friendly Windows .NET 8 desktop satellite that gives a Kinect for Windows
 3. In the settings window, enter the Home Assistant URL and long-lived token, select a compatible `.onnx` model, and adjust wake-word/Kinect options.
 4. Select **Test connection**, then **Apply and save**, then **Start**. Closing the window keeps the app in the system tray; use its menu to open settings, start/stop, or exit.
 
+## Download
+
+For versioned builds, open the repository's **Releases** page, download `OpenClaw-Kinect-Satellite-win-x86.zip`, and extract the complete archive before running `OpenClaw.KinectSatellite.exe`. The package is self-contained, so the .NET runtime does not need to be installed; Kinect for Windows SDK v1.8 is still required.
+
+Every pull request and manually dispatched Windows build also exposes the ZIP as the `OpenClaw-Kinect-Satellite-win-x86` workflow artifact. GitHub sign-in is normally required to download workflow artifacts.
+
 Publish a self-contained Windows executable with:
 
 ```powershell
@@ -32,6 +38,8 @@ dotnet publish src/OpenClaw.KinectSatellite -p:PublishProfile=win-x86-self-conta
 ```
 
 The output is `src\OpenClaw.KinectSatellite\bin\Release\net8.0-windows\win-x86\publish\OpenClaw.KinectSatellite.exe`. Copy the publish directory to a per-user location such as `%LOCALAPPDATA%\Programs\OpenClaw Kinect Satellite`, then run the executable. No .NET runtime installation is required for this self-contained build. Kinect SDK 1.8 must still be installed.
+
+Maintainers can create the `v0.1.0` GitHub Release either by pushing the `v0.1.0` tag or by running **Windows build and publish** from the Actions page with **Create a GitHub Release** enabled and version `v0.1.0`. The workflow tests, publishes, packages, uploads the artifact, and attaches the same ZIP to the release.
 
 The Kinect SDK performs adaptive beamforming, automatic gain control, acoustic echo cancellation, and noise suppression before 16 kHz mono PCM reaches the wake-word detector. Logs are written beneath `%LOCALAPPDATA%\OpenClaw\KinectSatellite\logs`.
 
