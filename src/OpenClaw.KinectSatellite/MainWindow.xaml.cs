@@ -101,8 +101,21 @@ public partial class MainWindow : Window
         FeedbackText.Text = result.Message;
     }
 
-    private async void Start_Click(object sender, RoutedEventArgs e) => await RunActionAsync(() => _controller.StartAsync());
+    private async void Start_Click(object sender, RoutedEventArgs e)
+    {
+        await RunActionAsync(() => _controller.StartAsync());
+        if (_controller.State == SatelliteState.Faulted)
+            ShowDiagnostics();
+    }
+
     private async void Stop_Click(object sender, RoutedEventArgs e) => await RunActionAsync(() => _controller.StopAsync());
+    private void Diagnostics_Click(object sender, RoutedEventArgs e) => ShowDiagnostics();
+
+    private void ShowDiagnostics()
+    {
+        var window = new DiagnosticsWindow(_controller) { Owner = this };
+        window.ShowDialog();
+    }
     private void WakeWord_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
     {
         if (!IsLoaded || WakeWord.SelectedValue is not string id) return;
