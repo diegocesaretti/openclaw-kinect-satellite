@@ -30,19 +30,54 @@ public sealed class KinectService(IUserSettingsStore settings, ILogger<KinectSer
     {
         if (_stream is not null) return;
         var assembly = LoadKinectAssembly();
-        var sensorType = assembly.GetType("Microsoft.Kinect.KinectSensor", true)!;
-        var sensors = (System.Collections.IEnumerable)sensorType.GetProperty("KinectSensors", BindingFlags.Public | BindingFlags.Static)!.GetValue(null)!;
+        var sensorType = assembly.GetType("Microsoft.Kinect.KinectSensor", true)
+            ?? throw new InvalidOperationException("Microsoft.Kinect.dll loaded, but KinectSensor type was not found.");
+        var sensorsProperty = sensorType.GetProperty("KinectSensors", BindingFlags.Public | BindingFlags.Static)
+            ?? throw new InvalidOperationException("Microsoft.Kinect.KinectSensor.KinectSensors was not found.");
+        var sensors = (System.Collections.IEnumerable)(sensorsProperty.GetValue(null)
+            ?? throw new InvalidOperationException("Kinect SDK returned a null sensor collection."));
+        var statuses = sensors.Cast<object>().Select(s => s.GetType().GetProperty("Status")?.GetValue(s)?.ToString() ?? "Unknown").ToArray();
         _sensor = sensors.Cast<object>().FirstOrDefault(s => s.GetType().GetProperty("Status")?.GetValue(s)?.ToString() == "Connected")
-            ?? throw new InvalidOperationException("No connected Kinect SDK v1 sensor was found.");
-        sensorType.GetMethod("Start")!.Invoke(_sensor, null);
-        var source = sensorType.GetProperty("AudioSource")!.GetValue(_sensor)!;
-        SetEnum(source, "BeamAngleMode", "Adaptive");
-        var options = settings.Current.Kinect;
-        SetEnum(source, "EchoCancellationMode", options.EchoCancellation ? "CancellationOnly" : "None");
+            ?? throw new InvalidOperationException($"No connected Kinect SDK v1 sensor was found. Reported statuses: {(statuses.Length == 0 ? "<none>" : string.Join(", ", statuses))}.");
+
+        try
+        {
+            Invoke(_sensor, sensorType.GetMethod("Start") ?? throw new MissingMethodException(sensorType.FullName, "Start"), "Kinect sensor start");
+            var source = sensorType.GetProperty("AudioSource")?.GetValue(_sensor)
+                ?? throw new InvalidOperationException("Kinect sensor returned no AudioSource.");
+            SetEnum(source, "BeamAngleMode", "Adaptive");
+            var options = settings.Current.Kinect;
+            ConfigureAudio(source, options.EchoCancellation, options.NoiseSuppression);
+
+            try
+            {
+                _stream = (Stream)(Invoke(source, source.GetType().GetMethod("Start") ?? throw new MissingMethodException(source.GetType().FullName, "Start"), "Kinect microphone-array start")
+                    ?? throw new InvalidOperationException("Kinect AudioSource.Start returned no audio stream."));
+            }
+            catch (InvalidOperationException first) when (options.EchoCancellation || options.NoiseSuppression)
+            {
+                logger.LogWarning(first, "Kinect enhanced audio processing failed; retrying with AEC and noise suppression disabled");
+                ConfigureAudio(source, false, false);
+                _stream = (Stream)(Invoke(source, source.GetType().GetMethod("Start") ?? throw new MissingMethodException(source.GetType().FullName, "Start"), "Kinect microphone-array fallback start")
+                    ?? throw new InvalidOperationException("Kinect AudioSource.Start returned no audio stream."));
+            }
+
+            logger.LogInformation("Kinect microphone array started with adaptive beamforming (requested AEC={Aec}, NS={Ns})", options.EchoCancellation, options.NoiseSuppression);
+        }
+        catch
+        {
+            try { Invoke(_sensor, sensorType.GetMethod("Stop")!, "Kinect sensor cleanup"); } catch { }
+            _sensor = null;
+            _stream = null;
+            throw;
+        }
+    }
+
+    private static void ConfigureAudio(object source, bool echoCancellation, bool noiseSuppression)
+    {
+        SetEnum(source, "EchoCancellationMode", echoCancellation ? "CancellationOnly" : "None");
         SetProperty(source, "AutomaticGainControlEnabled", true);
-        SetProperty(source, "NoiseSuppression", options.NoiseSuppression);
-        _stream = (Stream)source.GetType().GetMethod("Start")!.Invoke(source, null)!;
-        logger.LogInformation("Kinect microphone array started with adaptive beamforming (AEC={Aec}, NS={Ns})", options.EchoCancellation, options.NoiseSuppression);
+        SetProperty(source, "NoiseSuppression", noiseSuppression);
     }
 
     private static Assembly LoadKinectAssembly()
@@ -112,11 +147,49 @@ public sealed class KinectService(IUserSettingsStore settings, ILogger<KinectSer
         candidates.Add(Path.Combine(root, "Microsoft.Kinect.dll"));
     }
 
-    private static void SetProperty(object target, string name, object value) => target.GetType().GetProperty(name)?.SetValue(target, value);
+    private static object? Invoke(object target, MethodInfo method, string operation)
+    {
+        try { return method.Invoke(target, null); }
+        catch (TargetInvocationException ex) when (ex.InnerException is not null)
+        {
+            throw new InvalidOperationException($"{operation} failed: {Describe(ex.InnerException)}", ex.InnerException);
+        }
+    }
+
+    private static void SetProperty(object target, string name, object value)
+    {
+        var property = target.GetType().GetProperty(name);
+        if (property is null) return;
+        try { property.SetValue(target, value); }
+        catch (TargetInvocationException ex) when (ex.InnerException is not null)
+        {
+            throw new InvalidOperationException($"Kinect audio property {name} failed: {Describe(ex.InnerException)}", ex.InnerException);
+        }
+    }
+
     private static void SetEnum(object target, string name, string value)
     {
         var property = target.GetType().GetProperty(name);
-        if (property is not null) property.SetValue(target, Enum.Parse(property.PropertyType, value));
+        if (property is null) return;
+        try { property.SetValue(target, Enum.Parse(property.PropertyType, value)); }
+        catch (TargetInvocationException ex) when (ex.InnerException is not null)
+        {
+            throw new InvalidOperationException($"Kinect audio property {name}={value} failed: {Describe(ex.InnerException)}", ex.InnerException);
+        }
+    }
+
+    private static string Describe(Exception exception)
+    {
+        var messages = new List<string>();
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+        {
+            var message = current.Message;
+            if (current is ExternalException external)
+                message += $" (HRESULT 0x{external.ErrorCode:X8})";
+            if (!messages.Contains(message, StringComparer.Ordinal))
+                messages.Add(message);
+        }
+        return string.Join(" -> ", messages);
     }
 
     public ValueTask DisposeAsync()
