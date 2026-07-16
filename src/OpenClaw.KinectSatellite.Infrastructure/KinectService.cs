@@ -110,7 +110,7 @@ public sealed class KinectService(IUserSettingsStore settings, ILogger<KinectSer
             "Repair/install Kinect for Windows SDK or Runtime v1.8, then restart Windows. You may also copy the SDK's Microsoft.Kinect.dll beside the executable.");
     }
 
-    internal static IReadOnlyList<string> GetKinectAssemblyCandidates()
+    public static IReadOnlyList<string> GetKinectAssemblyCandidates()
     {
         var candidates = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
