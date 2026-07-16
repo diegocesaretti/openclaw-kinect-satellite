@@ -8,7 +8,8 @@
      <TextBlock x:Name="StatusText" Text="Stopped" Foreground="#B8C7D9" Margin="0,4,0,0"/></StackPanel>
     <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
      <Button x:Name="StartButton" Content="Start" Click="Start_Click" Padding="18,7" Margin="0,0,8,0"/>
-     <Button x:Name="StopButton" Content="Stop" Click="Stop_Click" Padding="18,7" IsEnabled="False"/>
+     <Button x:Name="StopButton" Content="Stop" Click="Stop_Click" Padding="18,7" Margin="0,0,8,0" IsEnabled="False"/>
+     <Button Content="Diagnostics" Click="Diagnostics_Click" Padding="18,7"/>
     </StackPanel>
    </Grid>
   </Border>
