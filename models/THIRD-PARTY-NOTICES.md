@@ -1,18 +1,16 @@
 # Wake-word model notices
 
-OpenClaw Kinect Satellite contains catalog metadata for the **Alexa** and **Hey Jarvis** entries published by the ESPHome `micro-wake-word-models` project:
+OpenClaw Kinect Satellite uses the official **openWakeWord v0.5.1 ONNX** assets for functional Windows wake-word inference:
 
-- Source repository: <https://github.com/esphome/micro-wake-word-models>
-- Catalog manifests: `models/v2/alexa.json` and `models/v2/hey_jarvis.json`
-- Upstream license: <https://github.com/esphome/micro-wake-word-models/blob/main/LICENSE>
+- Source: <https://github.com/dscripka/openWakeWord>
+- Release: <https://github.com/dscripka/openWakeWord/releases/tag/v0.5.1>
+- Shared feature models: `melspectrogram.onnx` and `embedding_model.onnx`
+- Classifiers: `alexa_v0.1.onnx` and `hey_jarvis_v0.1.onnx`
 
-The model binaries are **not redistributed in the OpenClaw release**. The upstream artifacts target TensorFlow Lite Micro, while this developer-preview process currently hosts ONNX Runtime. Renaming a `.tflite` artifact to `.onnx` would not make it compatible and is expressly avoided.
+The application downloads the pinned release assets on first use. Each asset is downloaded twice; matching SHA-256 digests are required before installation. The exact URLs and computed hashes are stored in `ATTRIBUTION.txt`, while `metadata.json` is used to verify every cached file before later loads.
 
-On first use, OpenClaw downloads the selected upstream manifest and exact model asset from the URLs declared by that manifest. It downloads the model twice, compares SHA-256 digests, and only then stores it under the current user's Local AppData model directory. It also stores:
+The openWakeWord source code is Apache-2.0. The upstream project states that its included pre-trained models are licensed under **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)**. These models therefore require attribution, are limited to non-commercial use, and require adaptations to be shared under the same license. The legal code is downloaded beside each installed model bundle:
 
-- the computed SHA-256 in `metadata.json`;
-- the official model and manifest URLs in `metadata.json` and `ATTRIBUTION.txt`; and
-- the official upstream `LICENSE` next to the model.
+<https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode>
 
-Every later load verifies the cached file against the stored SHA-256. If the upstream format is not ONNX, the application reports the format incompatibility clearly and retains the unmodified verified original. Native TensorFlow Lite Micro execution is tracked as roadmap work; no converted or unofficial model is substituted.
-
+ESPHome/OHF MicroWakeWord Alexa and Jarvis assets are TensorFlow Lite Micro models and are not used or relabeled as ONNX. The Windows implementation is accurately identified as openWakeWord because its official ONNX models are compatible with ONNX Runtime on win-x86.
