@@ -11,7 +11,7 @@ public static class DependencyInjection
     {
         services.TryAddSingleton<IUserSettingsStore, UserSettingsStore>();
         services.AddSingleton<IKinectService, KinectService>();
-        services.AddSingleton<IWakeWordService, MicroWakeWordService>();
+        services.AddSingleton<IWakeWordService, OpenWakeWordService>();
         services.AddSingleton<IWakeWordCatalog, WakeWordCatalog>();
         services.AddSingleton<IWakeWordModelInstaller, WakeWordModelInstaller>();
         services.AddSingleton<IViewAssistClient, ViewAssistClient>();
@@ -21,7 +21,7 @@ public static class DependencyInjection
         services.AddSingleton<ISatelliteController, SatelliteController>();
         services.AddHttpClient(nameof(AudioPlayer));
         services.AddHttpClient(nameof(HomeAssistantConnectionTester));
-        services.AddHttpClient(nameof(WakeWordModelInstaller), client => client.Timeout = TimeSpan.FromSeconds(30));
+        services.AddHttpClient(nameof(WakeWordModelInstaller), client => client.Timeout = TimeSpan.FromMinutes(2));
         return services;
     }
 }
