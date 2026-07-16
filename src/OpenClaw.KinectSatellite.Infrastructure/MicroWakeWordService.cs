@@ -108,7 +108,7 @@ public sealed class OpenWakeWordService : IWakeWordService, IDisposable
         var session = _melSession ?? throw new InvalidOperationException("The mel-spectrogram model is not loaded.");
         var values = samples.Select(x => (float)x).ToArray();
         var inputName = session.InputMetadata.Keys.First();
-        using var input = NamedOnnxValue.CreateFromTensor(inputName, new DenseTensor<float>(values, [1, values.Length]));
+        var input = NamedOnnxValue.CreateFromTensor(inputName, new DenseTensor<float>(values, [1, values.Length]));
         using var results = session.Run([input]);
         var output = results.First().AsEnumerable<float>().ToArray();
         if (output.Length == 0 || output.Length % MelBins != 0)
@@ -132,7 +132,7 @@ public sealed class OpenWakeWordService : IWakeWordService, IDisposable
         var session = _embeddingSession ?? throw new InvalidOperationException("The embedding model is not loaded.");
         var values = _melFrames.Skip(_melFrames.Count - MelWindowFrames).SelectMany(x => x).ToArray();
         var inputName = session.InputMetadata.Keys.First();
-        using var input = NamedOnnxValue.CreateFromTensor(inputName, new DenseTensor<float>(values, [1, MelWindowFrames, MelBins, 1]));
+        var input = NamedOnnxValue.CreateFromTensor(inputName, new DenseTensor<float>(values, [1, MelWindowFrames, MelBins, 1]));
         using var results = session.Run([input]);
         var output = results.First().AsEnumerable<float>().ToArray();
         if (output.Length < EmbeddingSize)
@@ -148,7 +148,7 @@ public sealed class OpenWakeWordService : IWakeWordService, IDisposable
         var session = _classifierSession ?? throw new InvalidOperationException("The wake-word classifier is not loaded.");
         var values = _embeddings.Skip(_embeddings.Count - _classifierFrames).SelectMany(x => x).ToArray();
         var inputName = session.InputMetadata.Keys.First();
-        using var input = NamedOnnxValue.CreateFromTensor(inputName, new DenseTensor<float>(values, [1, _classifierFrames, EmbeddingSize]));
+        var input = NamedOnnxValue.CreateFromTensor(inputName, new DenseTensor<float>(values, [1, _classifierFrames, EmbeddingSize]));
         using var results = session.Run([input]);
         var score = results.SelectMany(x => x.AsEnumerable<float>()).Max();
         var options = _settings.Current.WakeWord;
