@@ -2,17 +2,16 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OpenClaw.KinectSatellite.Core;
 
 namespace OpenClaw.KinectSatellite.Infrastructure;
 
 /// <summary>Home Assistant WebSocket Assist-pipeline client used by the View Assist satellite.</summary>
-public sealed class ViewAssistClient(IOptions<HomeAssistantOptions> options, IAudioPlayer player, ILogger<ViewAssistClient> logger) : IViewAssistClient
+public sealed class ViewAssistClient(IUserSettingsStore settingsStore, IAudioPlayer player, ILogger<ViewAssistClient> logger) : IViewAssistClient
 {
     public async Task RunPipelineAsync(IAsyncEnumerable<AudioFrame> audio, CancellationToken cancellationToken)
     {
-        var settings = options.Value;
+        var settings = settingsStore.Current.HomeAssistant;
         using var socket = new ClientWebSocket();
         await socket.ConnectAsync(WebSocketUri(settings.Url), cancellationToken);
         _ = await ReceiveJsonAsync(socket, cancellationToken); // auth_required

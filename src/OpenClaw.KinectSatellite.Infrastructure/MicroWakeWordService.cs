@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
 using OpenClaw.KinectSatellite.Core;
@@ -10,16 +9,16 @@ namespace OpenClaw.KinectSatellite.Infrastructure;
 public sealed class MicroWakeWordService : IWakeWordService, IDisposable
 {
     private const int FeatureCount = 40;
-    private readonly WakeWordOptions _options;
+    private readonly IUserSettingsStore _settings;
     private readonly ILogger<MicroWakeWordService> _logger;
     private readonly Queue<float[]> _window = new();
     private InferenceSession? _session;
     private int _positiveFrames;
     private DateTimeOffset _cooldownUntil;
 
-    public MicroWakeWordService(IOptions<WakeWordOptions> options, ILogger<MicroWakeWordService> logger)
+    public MicroWakeWordService(IUserSettingsStore settings, ILogger<MicroWakeWordService> logger)
     {
-        _options = options.Value;
+        _settings = settings;
         _logger = logger;
     }
 
@@ -29,6 +28,7 @@ public sealed class MicroWakeWordService : IWakeWordService, IDisposable
         _session ??= CreateSession();
         _window.Enqueue(LogSpectrum(frame.Pcm16.Span));
         while (_window.Count > 30) _window.Dequeue();
+        var options = _settings.Current.WakeWord;
         if (_window.Count < 30 || DateTimeOffset.UtcNow < _cooldownUntil) return ValueTask.FromResult(false);
 
         var features = _window.SelectMany(x => x).ToArray();
@@ -36,10 +36,10 @@ public sealed class MicroWakeWordService : IWakeWordService, IDisposable
         var input = NamedOnnxValue.CreateFromTensor(inputName, new DenseTensor<float>(features, [1, 30, FeatureCount]));
         using var results = _session.Run([input]);
         var score = results.SelectMany(r => r.AsEnumerable<float>()).Max();
-        _positiveFrames = score >= _options.Threshold ? _positiveFrames + 1 : 0;
+        _positiveFrames = score >= options.Threshold ? _positiveFrames + 1 : 0;
         _logger.LogTrace("Wake word score {Score:0.000}", score);
-        if (_positiveFrames < _options.TriggerFrames) return ValueTask.FromResult(false);
-        _cooldownUntil = DateTimeOffset.UtcNow.AddSeconds(_options.CooldownSeconds);
+        if (_positiveFrames < options.TriggerFrames) return ValueTask.FromResult(false);
+        _cooldownUntil = DateTimeOffset.UtcNow.AddSeconds(options.CooldownSeconds);
         _positiveFrames = 0;
         return ValueTask.FromResult(true);
     }
@@ -52,9 +52,10 @@ public sealed class MicroWakeWordService : IWakeWordService, IDisposable
 
     private InferenceSession CreateSession()
     {
-        if (!File.Exists(_options.ModelPath)) throw new FileNotFoundException("MicroWakeWord ONNX model not found", _options.ModelPath);
-        _logger.LogInformation("Loading MicroWakeWord model {Model}", _options.ModelPath);
-        return new InferenceSession(_options.ModelPath);
+        var path = _settings.Current.WakeWord.ModelPath;
+        if (!File.Exists(path)) throw new FileNotFoundException("MicroWakeWord ONNX model not found", path);
+        _logger.LogInformation("Loading MicroWakeWord model {Model}", path);
+        return new InferenceSession(path);
     }
 
     internal static float[] LogSpectrum(ReadOnlySpan<byte> pcm)

@@ -1,13 +1,12 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using OpenClaw.KinectSatellite.Core;
 
 namespace OpenClaw.KinectSatellite.Infrastructure;
 
 /// <summary>Loads Kinect SDK v1 at runtime so the rest of the application remains testable without Kinect hardware.</summary>
-public sealed class KinectService(IOptions<KinectOptions> options, ILogger<KinectService> logger) : IKinectService
+public sealed class KinectService(IUserSettingsStore settings, ILogger<KinectService> logger) : IKinectService
 {
     private object? _sensor;
     private Stream? _stream;
@@ -15,7 +14,7 @@ public sealed class KinectService(IOptions<KinectOptions> options, ILogger<Kinec
     public async IAsyncEnumerable<AudioFrame> CaptureAsync([EnumeratorCancellation] CancellationToken cancellationToken)
     {
         EnsureStarted();
-        var size = AudioFrame.SampleRate * sizeof(short) * options.Value.FrameMilliseconds / 1000;
+        var size = AudioFrame.SampleRate * sizeof(short) * settings.Current.Kinect.FrameMilliseconds / 1000;
         var buffer = new byte[size];
         while (!cancellationToken.IsCancellationRequested)
         {
@@ -36,11 +35,12 @@ public sealed class KinectService(IOptions<KinectOptions> options, ILogger<Kinec
         sensorType.GetMethod("Start")!.Invoke(_sensor, null);
         var source = sensorType.GetProperty("AudioSource")!.GetValue(_sensor)!;
         SetEnum(source, "BeamAngleMode", "Adaptive");
-        SetEnum(source, "EchoCancellationMode", options.Value.EchoCancellation ? "CancellationOnly" : "None");
+        var options = settings.Current.Kinect;
+        SetEnum(source, "EchoCancellationMode", options.EchoCancellation ? "CancellationOnly" : "None");
         SetProperty(source, "AutomaticGainControlEnabled", true);
-        SetProperty(source, "NoiseSuppression", options.Value.NoiseSuppression);
+        SetProperty(source, "NoiseSuppression", options.NoiseSuppression);
         _stream = (Stream)source.GetType().GetMethod("Start")!.Invoke(source, null)!;
-        logger.LogInformation("Kinect microphone array started with adaptive beamforming (AEC={Aec}, NS={Ns})", options.Value.EchoCancellation, options.Value.NoiseSuppression);
+        logger.LogInformation("Kinect microphone array started with adaptive beamforming (AEC={Aec}, NS={Ns})", options.EchoCancellation, options.NoiseSuppression);
     }
 
     private static Assembly LoadKinectAssembly()

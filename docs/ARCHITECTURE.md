@@ -5,7 +5,7 @@
 The solution uses a clean-architecture dependency direction:
 
 ```text
-OpenClaw.KinectSatellite (composition root / Worker host)
+OpenClaw.KinectSatellite (WPF UI / tray / composition root)
        |                         |
        v                         v
 Core (contracts, options, use case) <--- Infrastructure (device and network adapters)
@@ -13,7 +13,7 @@ Core (contracts, options, use case) <--- Infrastructure (device and network adap
                          Kinect SDK / ONNX Runtime / HA WebSocket / NAudio
 ```
 
-`Core` contains no Kinect, ONNX, Home Assistant, or playback implementation. `SatelliteWorker` owns the use case: listen, detect, run one Assist conversation, reset, and resume listening. The host is only a composition root and provides lifetime management, configuration, dependency injection, and Serilog.
+`Core` contains no Kinect, ONNX, Home Assistant, WPF, or playback implementation. `SatelliteWorker` owns the voice use case; `SatelliteController` supplies explicit start/stop/status semantics to any presentation layer. The WPF host composes services and handles the window and tray lifetime.
 
 ## Modules
 
@@ -23,7 +23,9 @@ Core (contracts, options, use case) <--- Infrastructure (device and network adap
 | `MicroWakeWordService` | Converts 30 ms PCM into a rolling 30×40 log-spectrum feature tensor and evaluates an ONNX wake classifier. Consecutive-frame and cooldown gates reduce false activations. |
 | `ViewAssistClient` | Authenticates to `/api/websocket`, starts an `assist_pipeline/run`, prefixes binary PCM with Home Assistant's handler byte, observes pipeline events, and delegates TTS playback. |
 | `AudioPlayer` | Downloads Home Assistant's TTS media to a short-lived file and plays it through the Windows output device with NAudio. |
-| Configuration | Strongly typed, startup-validated options bound by the DI composition module. Environment variables override JSON. |
+| Configuration | Strongly typed per-user settings shared through a core interface; the UI validates changes before they become current. |
+| `UserSettingsStore` | Persists per-user settings under Local AppData, protects the token with current-user Windows DPAPI, and manages the current-user Run registry entry. |
+| WPF shell | Validates input, tests connectivity, applies settings, controls service state, reports errors, and owns the notification-area menu. |
 
 ## Runtime sequence
 
@@ -43,4 +45,3 @@ Core (contracts, options, use case) <--- Infrastructure (device and network adap
 ## Testing strategy
 
 Unit tests substitute contract implementations and verify orchestration. Feature extraction, protocol parsing, retry behavior, and playback cancellation are planned next. Hardware-in-the-loop tests require a Windows x86 runner with SDK 1.8 and are deliberately separate from portable unit tests.
-

@@ -6,6 +6,17 @@ namespace OpenClaw.KinectSatellite.Tests;
 public sealed class SatelliteWorkerTests
 {
     [Fact]
+    public async Task ControllerReportsRunningAndStoppedStates()
+    {
+        var worker = new SatelliteWorker(new FakeKinect(), new NeverWake(), new FakeAssist(), NullLogger<SatelliteWorker>.Instance);
+        var controller = new SatelliteController(worker, NullLogger<SatelliteController>.Instance);
+        await controller.StartAsync();
+        Assert.Equal(SatelliteState.Running, controller.State);
+        await controller.StopAsync();
+        Assert.Equal(SatelliteState.Stopped, controller.State);
+    }
+
+    [Fact]
     public async Task StartsPipelineAfterWakeWord()
     {
         var kinect = new FakeKinect();
@@ -29,6 +40,11 @@ public sealed class SatelliteWorkerTests
     private sealed class AlwaysWake : IWakeWordService
     {
         public ValueTask<bool> DetectAsync(AudioFrame frame, CancellationToken cancellationToken) => ValueTask.FromResult(true);
+        public void Reset() { }
+    }
+    private sealed class NeverWake : IWakeWordService
+    {
+        public ValueTask<bool> DetectAsync(AudioFrame frame, CancellationToken cancellationToken) => ValueTask.FromResult(false);
         public void Reset() { }
     }
     private sealed class FakeAssist : IViewAssistClient

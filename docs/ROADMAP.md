@@ -7,6 +7,8 @@
 - Local ONNX wake-word inference
 - Home Assistant Assist WebSocket streaming and TTS playback
 - Structured console/file logging and orchestration test
+- Native WPF configuration, service controls, validation, connection test, and tray menu
+- DPAPI-protected per-user secrets, launch-at-sign-in, and self-contained x86 publishing
 
 ## Milestone 2 — protocol hardening
 
@@ -29,4 +31,3 @@
 - Optional camera snapshots/context for multimodal View Assist flows
 - LEDs/sounds for listening, thinking, and error states
 - Windows Service installer, signed packages, diagnostics bundle, and hardware-in-the-loop CI
-

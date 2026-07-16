@@ -28,3 +28,36 @@ public sealed class HomeAssistantOptions
     public string? DeviceId { get; init; }
 }
 
+public sealed class ApplicationOptions
+{
+    public string LoggingLevel { get; init; } = "Information";
+    public bool LaunchAtStartup { get; init; }
+}
+
+public sealed record SatelliteSettings(
+    KinectOptions Kinect,
+    WakeWordOptions WakeWord,
+    HomeAssistantOptions HomeAssistant,
+    ApplicationOptions Application);
+
+public interface IUserSettingsStore
+{
+    SatelliteSettings Current { get; }
+    Task SaveAsync(SatelliteSettings settings, CancellationToken cancellationToken = default);
+}
+
+public interface IHomeAssistantConnectionTester
+{
+    Task<(bool Success, string Message)> TestAsync(string url, string accessToken, CancellationToken cancellationToken = default);
+}
+
+public enum SatelliteState { Stopped, Starting, Running, Stopping, Faulted }
+
+public interface ISatelliteController
+{
+    SatelliteState State { get; }
+    string? LastError { get; }
+    event EventHandler? StateChanged;
+    Task StartAsync(CancellationToken cancellationToken = default);
+    Task StopAsync(CancellationToken cancellationToken = default);
+}
