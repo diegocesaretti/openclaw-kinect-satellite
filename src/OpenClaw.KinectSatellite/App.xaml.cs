@@ -8,7 +8,7 @@ using OpenClaw.KinectSatellite.Core;
 
 namespace OpenClaw.KinectSatellite;
 
-public partial class App : Application
+public partial class App : System.Windows.Application
 {
     private IHost? _host;
 
@@ -34,7 +34,7 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "OpenClaw Kinect Satellite could not start", MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show(ex.Message, "OpenClaw Kinect Satellite could not start", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
     }
