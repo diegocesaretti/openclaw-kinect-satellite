@@ -19,14 +19,18 @@ public sealed class WakeWordCatalogTests
     [Theory]
     [InlineData("alexa")]
     [InlineData("hey_jarvis")]
-    public void OfficialCatalogEntriesUseHttpsAndValidDefaults(string id)
+    public void OfficialCatalogEntriesUsePinnedOnnxAssetsAndValidDefaults(string id)
     {
         var model = new WakeWordCatalog().Get(id);
 
-        Assert.Equal(Uri.UriSchemeHttps, model.ManifestUri.Scheme);
+        Assert.Equal(Uri.UriSchemeHttps, model.ClassifierUri.Scheme);
+        Assert.Equal("github.com", model.ClassifierUri.Host);
+        Assert.Contains("/openWakeWord/releases/download/v0.5.1/", model.ClassifierUri.AbsolutePath, StringComparison.Ordinal);
+        Assert.EndsWith(".onnx", model.ClassifierUri.AbsolutePath, StringComparison.OrdinalIgnoreCase);
         Assert.Equal(Uri.UriSchemeHttps, model.LicenseUri.Scheme);
-        Assert.InRange(model.DefaultThreshold, 0, 1);
+        Assert.Equal(.5f, model.DefaultThreshold);
         Assert.InRange(model.DefaultTriggerFrames, 1, 20);
+        Assert.Contains("CC BY-NC-SA 4.0", model.Attribution, StringComparison.Ordinal);
     }
 
     [Theory]
