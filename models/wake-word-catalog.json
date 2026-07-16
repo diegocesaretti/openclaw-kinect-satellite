@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 2,
+  "engine": "openWakeWord ONNX",
+  "upstreamVersion": "v0.5.1",
+  "featureModels": {
+    "melSpectrogram": "https://github.com/dscripka/openWakeWord/releases/download/v0.5.1/melspectrogram.onnx",
+    "embedding": "https://github.com/dscripka/openWakeWord/releases/download/v0.5.1/embedding_model.onnx"
+  },
+  "license": "https://creativecommons.org/licenses/by-nc-sa/4.0/legalcode",
+  "models": [
+    {
+      "id": "alexa",
+      "displayName": "Alexa",
+      "classifier": "https://github.com/dscripka/openWakeWord/releases/download/v0.5.1/alexa_v0.1.onnx",
+      "defaultThreshold": 0.5,
+      "defaultTriggerFrames": 2
+    },
+    {
+      "id": "hey_jarvis",
+      "displayName": "Jarvis",
+      "classifier": "https://github.com/dscripka/openWakeWord/releases/download/v0.5.1/hey_jarvis_v0.1.onnx",
+      "defaultThreshold": 0.5,
+      "defaultTriggerFrames": 2
+    }
+  ]
+}
