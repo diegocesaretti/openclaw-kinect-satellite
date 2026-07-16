@@ -46,7 +46,7 @@ public sealed class SatelliteController : ISatelliteController
         _logger = logger;
         _worker.Faulted += (_, exception) =>
         {
-            LastError = exception.Message;
+            LastError = ExceptionDetails(exception);
             SetState(SatelliteState.Faulted);
         };
     }
@@ -58,13 +58,13 @@ public sealed class SatelliteController : ISatelliteController
         try
         {
             await _worker.StartAsync(cancellationToken);
-            if (_worker.LastFailure is not null) throw new InvalidOperationException(_worker.LastFailure.Message, _worker.LastFailure);
+            if (_worker.LastFailure is not null) throw new InvalidOperationException(ExceptionDetails(_worker.LastFailure), _worker.LastFailure);
             LastError = null;
             SetState(SatelliteState.Running);
         }
         catch (Exception ex)
         {
-            LastError = ex.Message;
+            LastError = ExceptionDetails(ex);
             _logger.LogError(ex, "Could not start satellite");
             SetState(SatelliteState.Faulted);
             throw;
@@ -76,7 +76,16 @@ public sealed class SatelliteController : ISatelliteController
         if (State is SatelliteState.Stopped or SatelliteState.Stopping) return;
         SetState(SatelliteState.Stopping);
         try { await _worker.StopAsync(cancellationToken); SetState(SatelliteState.Stopped); }
-        catch (Exception ex) { LastError = ex.Message; SetState(SatelliteState.Faulted); throw; }
+        catch (Exception ex) { LastError = ExceptionDetails(ex); SetState(SatelliteState.Faulted); throw; }
+    }
+
+    private static string ExceptionDetails(Exception exception)
+    {
+        var messages = new List<string>();
+        for (Exception? current = exception; current is not null; current = current.InnerException)
+            if (!string.IsNullOrWhiteSpace(current.Message) && !messages.Contains(current.Message, StringComparer.Ordinal))
+                messages.Add(current.Message);
+        return string.Join(" -> ", messages);
     }
 
     private void SetState(SatelliteState state) { State = state; StateChanged?.Invoke(this, EventArgs.Empty); }
