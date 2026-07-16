@@ -4,7 +4,7 @@
 
 - Clean architecture and DI composition
 - Kinect SDK v1 adaptive beam capture with audio processing
-- Local ONNX wake-word inference
+- Functional openWakeWord v0.5.1 ONNX streaming inference with Alexa/Jarvis
 - Home Assistant Assist WebSocket streaming and TTS playback
 - Structured console/file logging and orchestration test
 - Native WPF configuration, service controls, validation, connection test, and tray menu
@@ -18,11 +18,10 @@
 - Configurable output device and playback volume
 - Graceful handling of Kinect disconnect/reconnect
 
-## Milestone 3 — MicroWakeWord compatibility
+## Milestone 3 — wake-word expansion
 
-- Read official MicroWakeWord model metadata and frontend parameters
-- Native TensorFlow Lite Micro execution for the official Alexa/Jarvis catalog assets
-- Model download/checksum tooling and calibration utility
+- Optional native TensorFlow Lite Micro adapter for ESPHome MicroWakeWord assets
+- Model calibration utility and additional properly licensed catalogs
 - Corpus-based false-accept/false-reject benchmarks
 
 ## Milestone 4 — View Assist experience
