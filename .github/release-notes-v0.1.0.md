@@ -6,7 +6,7 @@ This is the first developer-preview release of the OpenClaw Kinect Satellite for
 
 - Native .NET 8 WPF settings window and system-tray controls.
 - Kinect for Windows SDK v1 microphone-array capture with adaptive beamforming, echo cancellation, and noise suppression.
-- Built-in Alexa and Jarvis wake-word catalog with verified official first-run downloads.
+- Functional Alexa and Jarvis detection using the official openWakeWord v0.5.1 ONNX streaming pipeline and verified first-run downloads.
 - Home Assistant Assist pipeline audio streaming and response playback.
 - Per-user settings with a Windows DPAPI-protected Home Assistant access token.
 - Self-contained 32-bit Windows package for Kinect SDK v1.8.
@@ -18,4 +18,4 @@ This is the first developer-preview release of the OpenClaw Kinect Satellite for
 3. Run `OpenClaw.KinectSatellite.exe`.
 4. Select Alexa or Jarvis, configure Home Assistant, test the connection, save, and start the satellite.
 
-> This is a developer preview. Official Alexa/Jarvis artifacts are downloaded with SHA-256 verification and attribution on first use rather than bundled. Their current upstream TensorFlow Lite format is retained unchanged and v0.1.0 reports that it cannot execute that format with its ONNX runtime. Kinect SDK v1.8 remains a separate prerequisite.
+> This is a developer preview. Pinned official openWakeWord ONNX assets are downloaded with SHA-256 verification and attribution on first use. Pre-trained models are CC BY-NC-SA 4.0 (non-commercial, attribution and ShareAlike terms apply). Kinect SDK v1.8 remains a separate prerequisite.
