@@ -45,9 +45,11 @@ The Kinect SDK performs adaptive beamforming, automatic gain control, acoustic e
 
 ### Wake-word assets and integrity
 
-The release includes the Alexa/Jarvis catalog plus third-party source, license, and attribution information, but does not rename or redistribute an incompatible binary. On first start, the selected official ESPHome manifest and model are downloaded from the upstream `micro-wake-word-models` repository. The model is downloaded twice, the SHA-256 digests must match, and the digest, source URL, license, and attribution are stored beside the cached model under `%LOCALAPPDATA%\OpenClaw\KinectSatellite\models`. Every later load rechecks that digest.
+Windows uses the official **openWakeWord v0.5.1 ONNX pipeline**: the pinned mel-spectrogram model, shared embedding model, and the selected Alexa or Hey Jarvis classifier. The app processes 16 kHz PCM in 80 ms chunks and runs the same streaming feature stages expected by those classifiers. It does not rename ESPHome MicroWakeWord TensorFlow Lite files or feed an incompatible hand-written tensor to an ONNX classifier.
 
-The current official upstream manifests provide TensorFlow Lite Micro models, while v0.1.0 embeds ONNX Runtime. The application therefore preserves the verified upstream file and displays a clear unsupported-format error instead of fabricating an ONNX file or silently substituting another wake word. Native TFLite Micro execution is planned for the next compatibility milestone. See [`models/THIRD-PARTY-NOTICES.md`](models/THIRD-PARTY-NOTICES.md) for exact sources and licensing behavior.
+On first start, the pinned ONNX assets are downloaded twice and their SHA-256 digests must match. The digest, exact source URL, license, and attribution are cached under `%LOCALAPPDATA%\OpenClaw\KinectSatellite\models\openwakeword-v0.5.1`; every later load rechecks all model files. An internet connection is required for the first start of each wake word.
+
+openWakeWord code is Apache-2.0. Its included pre-trained Alexa and Hey Jarvis models are **CC BY-NC-SA 4.0**, so attribution, ShareAlike and non-commercial-use restrictions apply. See [`models/THIRD-PARTY-NOTICES.md`](models/THIRD-PARTY-NOTICES.md).
 
 ## Development
 
