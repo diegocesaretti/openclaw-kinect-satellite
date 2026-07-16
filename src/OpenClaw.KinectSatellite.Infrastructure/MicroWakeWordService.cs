@@ -91,7 +91,7 @@ public sealed class OpenWakeWordService : IWakeWordService, IDisposable
             _embeddingSession = new InferenceSession(installed.EmbeddingPath);
             _classifierSession = new InferenceSession(installed.ClassifierPath);
             var dimensions = _classifierSession.InputMetadata.Values.First().Dimensions;
-            _classifierFrames = dimensions.Count > 1 && dimensions[1] > 0 ? dimensions[1] : 16;
+            _classifierFrames = dimensions.Length > 1 && dimensions[1] > 0 ? dimensions[1] : 16;
             _loadedWakeWord = wakeWordId;
             Reset();
             _logger.LogInformation("Loaded openWakeWord ONNX model {WakeWord} with {Frames} embedding frames", wakeWordId, _classifierFrames);
