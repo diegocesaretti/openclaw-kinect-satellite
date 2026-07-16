@@ -20,8 +20,8 @@ Core (contracts, options, use case) <--- Infrastructure (device and network adap
 | Module | Responsibility |
 | --- | --- |
 | `KinectService` | Discovers a connected Kinect v1 through the SDK 1.8 assembly, selects adaptive array beamforming, enables AEC/AGC/noise suppression, and yields immutable 16 kHz PCM frames. Runtime loading keeps hardware out of unit tests. |
-| `WakeWordCatalog` / installer | Exposes only Alexa and Jarvis, retrieves their official ESPHome manifests/assets on first use, verifies repeat-download SHA-256 integrity, and persists source/license/attribution metadata. |
-| `MicroWakeWordService` | Converts 30 ms PCM into a rolling 30×40 log-spectrum feature tensor and evaluates compatible ONNX classifiers. It rejects upstream TFLite files explicitly instead of relabeling them. |
+| `WakeWordCatalog` / installer | Exposes only Alexa and Jarvis, retrieves pinned official openWakeWord v0.5.1 ONNX assets on first use, verifies repeat-download SHA-256 integrity, and persists source/license/attribution metadata. |
+| `OpenWakeWordService` | Runs the official streaming ONNX pipeline: 80 ms PCM chunks, mel-spectrogram, normalization, shared 96-value embeddings, rolling classifier input, then the selected Alexa/Jarvis classifier. |
 | `ViewAssistClient` | Authenticates to `/api/websocket`, starts an `assist_pipeline/run`, prefixes binary PCM with Home Assistant's handler byte, observes pipeline events, and delegates TTS playback. |
 | `AudioPlayer` | Downloads Home Assistant's TTS media to a short-lived file and plays it through the Windows output device with NAudio. |
 | Configuration | Strongly typed per-user settings shared through a core interface; the UI validates changes before they become current. |
@@ -39,7 +39,7 @@ Core (contracts, options, use case) <--- Infrastructure (device and network adap
 ## Boundaries and trade-offs
 
 - Kinect SDK 1.8 is a legacy x86 dependency. Reflection contains that constraint in one adapter and produces an actionable error when it is absent.
-- Official Alexa/Jarvis MicroWakeWord exports currently use TensorFlow Lite Micro. The installer preserves and verifies them, but the v0.1.0 ONNX adapter rejects that format with an actionable error. A native model-specific TFLite adapter is required before those catalog entries can perform inference.
+- ESPHome MicroWakeWord models are TFLite Micro-only. Windows instead uses the official openWakeWord ONNX models and full upstream feature pipeline. Pre-trained model use is governed by CC BY-NC-SA 4.0, including its non-commercial restriction.
 - The current interaction ends when Home Assistant emits `run-end`; future endpointing controls will allow explicit audio termination.
 - Each activation opens a new authenticated WebSocket. Connection pooling is deferred until reconnection behavior is fully tested.
 
