@@ -28,7 +28,7 @@ public partial class DiagnosticsWindow : Window
     private void Copy_Click(object sender, RoutedEventArgs e)
     {
         if (!string.IsNullOrEmpty(DiagnosticsText.Text))
-            Clipboard.SetText(DiagnosticsText.Text);
+            System.Windows.Clipboard.SetText(DiagnosticsText.Text);
     }
 
     private void OpenLogs_Click(object sender, RoutedEventArgs e)
@@ -40,7 +40,7 @@ public partial class DiagnosticsWindow : Window
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.ToString(), "Could not open logs folder", MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show(ex.ToString(), "Could not open logs folder", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
