@@ -20,4 +20,8 @@
     <PackageReference Include="Serilog.Sinks.Console" Version="6.0.0" />
     <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
   </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\models\wake-word-catalog.json" Link="models\wake-word-catalog.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\models\THIRD-PARTY-NOTICES.md" Link="models\THIRD-PARTY-NOTICES.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
 </Project>

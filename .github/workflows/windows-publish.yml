@@ -71,6 +71,11 @@ jobs:
           if (-not (Test-Path $exe -PathType Leaf)) {
             throw "Publish did not produce $exe"
           }
+          @("models\wake-word-catalog.json", "models\THIRD-PARTY-NOTICES.md") | ForEach-Object {
+            if (-not (Test-Path (Join-Path $env:PUBLISH_DIR $_) -PathType Leaf)) {
+              throw "Publish is missing required wake-word catalog metadata: $_"
+            }
+          }
           Get-ChildItem $env:PUBLISH_DIR -Recurse | Format-Table FullName, Length
 
       - name: Package Windows application

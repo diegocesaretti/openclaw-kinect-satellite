@@ -13,10 +13,32 @@ public sealed class KinectOptions
 public sealed class WakeWordOptions
 {
     public const string Section = "WakeWord";
-    [Required] public string ModelPath { get; init; } = "models/okay-nabu.onnx";
+    [Required] public string WakeWordId { get; init; } = "alexa";
     [Range(0, 1)] public float Threshold { get; init; } = .7f;
     [Range(1, 20)] public int TriggerFrames { get; init; } = 3;
     [Range(0, 30)] public int CooldownSeconds { get; init; } = 2;
+}
+
+public sealed record WakeWordModelDefinition(
+    string Id,
+    string DisplayName,
+    Uri ManifestUri,
+    Uri LicenseUri,
+    float DefaultThreshold,
+    int DefaultTriggerFrames,
+    string Attribution);
+
+public sealed record InstalledWakeWordModel(string ModelPath, string Sha256, string SourceUrl, string LicensePath);
+
+public interface IWakeWordCatalog
+{
+    IReadOnlyList<WakeWordModelDefinition> Models { get; }
+    WakeWordModelDefinition Get(string id);
+}
+
+public interface IWakeWordModelInstaller
+{
+    Task<InstalledWakeWordModel> EnsureInstalledAsync(string id, CancellationToken cancellationToken = default);
 }
 
 public sealed class HomeAssistantOptions

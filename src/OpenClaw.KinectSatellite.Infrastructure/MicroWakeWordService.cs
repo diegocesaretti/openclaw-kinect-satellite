@@ -11,25 +11,27 @@ public sealed class MicroWakeWordService : IWakeWordService, IDisposable
     private const int FeatureCount = 40;
     private readonly IUserSettingsStore _settings;
     private readonly ILogger<MicroWakeWordService> _logger;
+    private readonly IWakeWordModelInstaller _installer;
     private readonly Queue<float[]> _window = new();
     private InferenceSession? _session;
     private int _positiveFrames;
     private DateTimeOffset _cooldownUntil;
 
-    public MicroWakeWordService(IUserSettingsStore settings, ILogger<MicroWakeWordService> logger)
+    public MicroWakeWordService(IUserSettingsStore settings, IWakeWordModelInstaller installer, ILogger<MicroWakeWordService> logger)
     {
         _settings = settings;
+        _installer = installer;
         _logger = logger;
     }
 
-    public ValueTask<bool> DetectAsync(AudioFrame frame, CancellationToken cancellationToken)
+    public async ValueTask<bool> DetectAsync(AudioFrame frame, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        _session ??= CreateSession();
+        _session ??= await CreateSessionAsync(cancellationToken);
         _window.Enqueue(LogSpectrum(frame.Pcm16.Span));
         while (_window.Count > 30) _window.Dequeue();
         var options = _settings.Current.WakeWord;
-        if (_window.Count < 30 || DateTimeOffset.UtcNow < _cooldownUntil) return ValueTask.FromResult(false);
+        if (_window.Count < 30 || DateTimeOffset.UtcNow < _cooldownUntil) return false;
 
         var features = _window.SelectMany(x => x).ToArray();
         var inputName = _session.InputMetadata.Keys.First();
@@ -38,10 +40,10 @@ public sealed class MicroWakeWordService : IWakeWordService, IDisposable
         var score = results.SelectMany(r => r.AsEnumerable<float>()).Max();
         _positiveFrames = score >= options.Threshold ? _positiveFrames + 1 : 0;
         _logger.LogTrace("Wake word score {Score:0.000}", score);
-        if (_positiveFrames < options.TriggerFrames) return ValueTask.FromResult(false);
+        if (_positiveFrames < options.TriggerFrames) return false;
         _cooldownUntil = DateTimeOffset.UtcNow.AddSeconds(options.CooldownSeconds);
         _positiveFrames = 0;
-        return ValueTask.FromResult(true);
+        return true;
     }
 
     public void Reset()
@@ -50,10 +52,12 @@ public sealed class MicroWakeWordService : IWakeWordService, IDisposable
         _positiveFrames = 0;
     }
 
-    private InferenceSession CreateSession()
+    private async Task<InferenceSession> CreateSessionAsync(CancellationToken cancellationToken)
     {
-        var path = _settings.Current.WakeWord.ModelPath;
-        if (!File.Exists(path)) throw new FileNotFoundException("MicroWakeWord ONNX model not found", path);
+        var installed = await _installer.EnsureInstalledAsync(_settings.Current.WakeWord.WakeWordId, cancellationToken);
+        var path = installed.ModelPath;
+        if (!string.Equals(Path.GetExtension(path), ".onnx", StringComparison.OrdinalIgnoreCase))
+            throw new NotSupportedException($"The official model is '{Path.GetExtension(path)}', which this ONNX build cannot execute. The verified original was retained at '{path}'; it was not renamed or converted.");
         _logger.LogInformation("Loading MicroWakeWord model {Model}", path);
         return new InferenceSession(path);
     }

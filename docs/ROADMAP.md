@@ -21,7 +21,7 @@
 ## Milestone 3 — MicroWakeWord compatibility
 
 - Read official MicroWakeWord model metadata and frontend parameters
-- Stateful recurrent model inputs/outputs and TFLite model option
+- Native TensorFlow Lite Micro execution for the official Alexa/Jarvis catalog assets
 - Model download/checksum tooling and calibration utility
 - Corpus-based false-accept/false-reject benchmarks
 

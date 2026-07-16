@@ -26,11 +26,12 @@
     <TextBlock Grid.Row="2" Text="Pipeline ID (optional)" VerticalAlignment="Center"/><TextBox x:Name="PipelineId" Grid.Row="2" Grid.Column="1" Margin="0,6" Padding="6"/>
     <TextBlock Grid.Row="3" Text="Device ID (optional)" VerticalAlignment="Center"/><TextBox x:Name="DeviceId" Grid.Row="3" Grid.Column="1" Margin="0,6" Padding="6"/>
    </Grid></TabItem>
-   <TabItem Header="Wake word"><Grid Margin="16"><Grid.ColumnDefinitions><ColumnDefinition Width="190"/><ColumnDefinition/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
-    <TextBlock Text="ONNX model" VerticalAlignment="Center"/><TextBox x:Name="ModelPath" Grid.Column="1" Margin="0,6" Padding="6"/><Button Grid.Column="2" Content="Browse…" Click="Browse_Click" Margin="8,6,0,6" Padding="10,5"/>
+   <TabItem Header="Wake word"><Grid Margin="16"><Grid.ColumnDefinitions><ColumnDefinition Width="190"/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+    <TextBlock Text="Wake word" VerticalAlignment="Center"/><ComboBox x:Name="WakeWord" Grid.Column="1" Margin="0,6" Padding="6" DisplayMemberPath="DisplayName" SelectedValuePath="Id" SelectionChanged="WakeWord_SelectionChanged"/>
     <TextBlock Grid.Row="1" Text="Threshold (0–1)"/><TextBox x:Name="Threshold" Grid.Row="1" Grid.Column="1" Margin="0,6" Padding="6"/>
     <TextBlock Grid.Row="2" Text="Trigger frames (1–20)"/><TextBox x:Name="TriggerFrames" Grid.Row="2" Grid.Column="1" Margin="0,6" Padding="6"/>
     <TextBlock Grid.Row="3" Text="Cooldown seconds (0–30)"/><TextBox x:Name="Cooldown" Grid.Row="3" Grid.Column="1" Margin="0,6" Padding="6"/>
+    <TextBlock Grid.Row="4" Grid.ColumnSpan="2" Text="The official model is installed automatically on first start and verified before use." TextWrapping="Wrap" Foreground="#52616F" Margin="0,10,0,0"/>
    </Grid></TabItem>
    <TabItem Header="Kinect &amp; app"><Grid Margin="16"><Grid.ColumnDefinitions><ColumnDefinition Width="250"/><ColumnDefinition/></Grid.ColumnDefinitions><Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
     <CheckBox x:Name="EchoCancellation" Content="Echo cancellation" Grid.ColumnSpan="2" Margin="0,8"/>

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using OpenClaw.KinectSatellite.Core;
+using System.Runtime.CompilerServices;
 
 namespace OpenClaw.KinectSatellite.Tests;
 
@@ -25,12 +26,12 @@ public sealed class SatelliteWorkerTests
         await worker.StartAsync(CancellationToken.None);
         await assist.Called.Task.WaitAsync(TimeSpan.FromSeconds(2));
         await worker.StopAsync(CancellationToken.None);
-        Assert.True(assist.Called.Task.Result);
+        Assert.True(await assist.Called.Task);
     }
 
     private sealed class FakeKinect : IKinectService
     {
-        public async IAsyncEnumerable<AudioFrame> CaptureAsync(CancellationToken cancellationToken)
+        public async IAsyncEnumerable<AudioFrame> CaptureAsync([EnumeratorCancellation] CancellationToken cancellationToken)
         {
             yield return new AudioFrame(new byte[960], DateTimeOffset.UtcNow);
             await Task.Delay(Timeout.Infinite, cancellationToken);

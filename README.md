@@ -9,7 +9,7 @@ A user-friendly Windows .NET 8 desktop satellite that gives a Kinect for Windows
 - Windows 10/11 x64, .NET 8 SDK (the app itself runs as x86)
 - Kinect for Windows sensor and **Kinect for Windows SDK 1.8** (not Kinect v2)
 - Home Assistant with an Assist pipeline and a long-lived access token
-- A MicroWakeWord-compatible ONNX model accepting `[1, 30, 40]` log-spectrum frames and returning a floating-point wake probability
+- Internet access on first use to retrieve the selected official Alexa or Hey Jarvis model and its license metadata
 
 ## Build and run for development
 
@@ -22,7 +22,7 @@ A user-friendly Windows .NET 8 desktop satellite that gives a Kinect for Windows
    dotnet run --project src/OpenClaw.KinectSatellite
    ```
 
-3. In the settings window, enter the Home Assistant URL and long-lived token, select a compatible `.onnx` model, and adjust wake-word/Kinect options.
+3. In the settings window, enter the Home Assistant URL and long-lived token, choose **Alexa** or **Jarvis**, and adjust wake-word/Kinect options. No model path is required.
 4. Select **Test connection**, then **Apply and save**, then **Start**. Closing the window keeps the app in the system tray; use its menu to open settings, start/stop, or exit.
 
 ## Download
@@ -42,6 +42,12 @@ The output is `src\OpenClaw.KinectSatellite\bin\Release\net8.0-windows\win-x86\p
 Maintainers can create the `v0.1.0` GitHub Release either by pushing the `v0.1.0` tag or by running **Windows build and publish** from the Actions page with **Create a GitHub Release** enabled and version `v0.1.0`. The workflow tests, publishes, packages, uploads the artifact, and attaches the same ZIP to the release.
 
 The Kinect SDK performs adaptive beamforming, automatic gain control, acoustic echo cancellation, and noise suppression before 16 kHz mono PCM reaches the wake-word detector. Logs are written beneath `%LOCALAPPDATA%\OpenClaw\KinectSatellite\logs`.
+
+### Wake-word assets and integrity
+
+The release includes the Alexa/Jarvis catalog plus third-party source, license, and attribution information, but does not rename or redistribute an incompatible binary. On first start, the selected official ESPHome manifest and model are downloaded from the upstream `micro-wake-word-models` repository. The model is downloaded twice, the SHA-256 digests must match, and the digest, source URL, license, and attribution are stored beside the cached model under `%LOCALAPPDATA%\OpenClaw\KinectSatellite\models`. Every later load rechecks that digest.
+
+The current official upstream manifests provide TensorFlow Lite Micro models, while v0.1.0 embeds ONNX Runtime. The application therefore preserves the verified upstream file and displays a clear unsupported-format error instead of fabricating an ONNX file or silently substituting another wake word. Native TFLite Micro execution is planned for the next compatibility milestone. See [`models/THIRD-PARTY-NOTICES.md`](models/THIRD-PARTY-NOTICES.md) for exact sources and licensing behavior.
 
 ## Development
 

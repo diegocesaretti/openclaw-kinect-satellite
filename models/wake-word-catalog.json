@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "models": [
+    {
+      "id": "alexa",
+      "displayName": "Alexa",
+      "officialManifest": "https://raw.githubusercontent.com/esphome/micro-wake-word-models/main/models/v2/alexa.json",
+      "officialLicense": "https://raw.githubusercontent.com/esphome/micro-wake-word-models/main/LICENSE",
+      "defaultThreshold": 0.90,
+      "defaultTriggerFrames": 5
+    },
+    {
+      "id": "hey_jarvis",
+      "displayName": "Jarvis",
+      "officialManifest": "https://raw.githubusercontent.com/esphome/micro-wake-word-models/main/models/v2/hey_jarvis.json",
+      "officialLicense": "https://raw.githubusercontent.com/esphome/micro-wake-word-models/main/LICENSE",
+      "defaultThreshold": 0.90,
+      "defaultTriggerFrames": 5
+    }
+  ]
+}
